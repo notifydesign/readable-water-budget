@@ -241,7 +241,6 @@
     const updatedStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     const shutMonthDay = seasonEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const shutYear = seasonEnd.getFullYear();
-    const shutAsOf = new Date(SHUTOFF.asOf + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const canOutlook = haveAnnual && daysToSeasonEnd > 0 && pace > 0;
     let yearClass = '', yearLead = '', yearMsg = '', cutPct = 0, allowedDailyYear = 0;
     if (canOutlook) {
@@ -303,7 +302,7 @@
         <div class="card shut">
           <p class="ttl">Water shuts off</p>
           <div class="leakmid"><div><div class="shutdate">${shutMonthDay}</div><div class="shutyear">${shutYear}</div></div></div>
-          <p class="leaksub muted">${daysToSeasonEnd > 0 ? 'in about ' + daysToSeasonEnd + ' days' : 'off for the season'}<br>as of ${shutAsOf}</p>
+          <div class="updated">${daysToSeasonEnd > 0 ? 'In about ' + daysToSeasonEnd + ' days' : 'Off for the season'}</div>
         </div>
       </div>
 
