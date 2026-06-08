@@ -1,0 +1,9 @@
+{
+  "shutoff": {
+    "month": 10,
+    "day": 15,
+    "asOf": "2026-06-08",
+    "source": "North Ogden City"
+  },
+  "_note": "Secondary (irrigation) water shut-off for North Ogden. If the city announces a change (including an early drought shut-off), edit month (1-12), day, and asOf (YYYY-MM-DD). Every installed extension picks this up within about 2 weeks. The extension falls back to Oct 15 if this file is ever unreachable."
+}
