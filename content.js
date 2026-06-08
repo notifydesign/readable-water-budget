@@ -2,6 +2,7 @@
   'use strict';
   if (window.__wsReadable) return;            // don't double-inject
   window.__wsReadable = true;
+  let loadingTimer = null;
 
   const SENTINEL = 'T2SESSION_EXPIRED';
   const num = m => (m && m[1] != null) ? parseFloat(String(m[1]).replace(/,/g, '')) : null;
@@ -221,6 +222,7 @@
   @media(max-width:780px){.three,.two,.herorow{grid-template-columns:1fr}.big{font-size:40px}.btext{font-size:16px}}`;
 
   function render(root, B, A, C) {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
     const used = B.cycleUsed, cap = B.cycleBudget || (B.dailyTarget * B.daysInCycle), left = cap - used;
     const pctUsed = cap ? used / cap * 100 : 0;
     const pctTime = B.daysInCycle ? B.daysIn / B.daysInCycle * 100 : 0;
@@ -349,13 +351,24 @@
     root.getElementById('scrim').onclick = e => { if (e.target.id === 'scrim') hide(); };
   }
 
-  function loading(root, msg) {
+  function loading(root) {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+    const msgs = ['Reading your meter…', 'Still reading…', 'Crunching your numbers…', 'Almost done…'];
     root.innerHTML = `<style>${STYLE}</style><div class="scrim" id="scrim"><div class="wrap"><div class="panel">
-      <div class="center"><div class="spin"></div><br>${msg || 'Reading your meter...'}</div></div></div></div>`;
+      <div class="center"><div class="spin"></div><br><span id="loadmsg">${msgs[0]}</span><br>
+      <span style="font-size:12.5px;color:#94A3B8">This can take a few seconds.</span></div></div></div></div>`;
     const s = root.getElementById('scrim'); if (s) s.onclick = e => { if (e.target.id === 'scrim') hide(); };
+    let i = 0;
+    loadingTimer = setInterval(() => {
+      const el = root.getElementById('loadmsg');
+      if (!el) { clearInterval(loadingTimer); loadingTimer = null; return; }   // content was swapped out
+      if (i < msgs.length - 1) { i++; el.textContent = msgs[i]; }
+      else { clearInterval(loadingTimer); loadingTimer = null; }               // hold on the last message
+    }, 1600);
   }
 
   function errored(root, msg) {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
     root.innerHTML = `<style>${STYLE}</style><div class="scrim" id="scrim"><div class="wrap"><div class="panel">
       <div class="center">${msg}<br><br><button class="x" id="close">Close</button></div></div></div></div>`;
     root.getElementById('close').onclick = hide;
@@ -375,7 +388,7 @@
   document.body.appendChild(fab);
 
   function show() { host.style.display = 'block'; fab.style.display = 'none'; }
-  function hide() { root.innerHTML = ''; host.style.display = 'none'; fab.style.display = 'block'; }
+  function hide() { if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; } root.innerHTML = ''; host.style.display = 'none'; fab.style.display = 'block'; }
 
   async function load() {
     loading(root);
