@@ -153,13 +153,16 @@
   .drop{width:24px;height:24px;color:#2563EB}
   h1{font-size:20px;margin:0;font-weight:700}
   .sub{font-size:12.5px;margin-top:2px}
-  .x{cursor:pointer;border:1px solid #DDE3EC;background:#fff;border-radius:9px;font-size:13px;padding:7px 11px;color:#1A2230;font-weight:500}
+  .x{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid #DDE3EC;background:#fff;border-radius:9px;font-size:13px;padding:7px 11px;color:#1A2230;font-weight:500}
+  .x svg{width:14px;height:14px}
+  .close{border:0;background:none;font-size:30px;line-height:1;color:#6B7685;cursor:pointer;padding:0 2px}
+  .close:hover{color:#1A2230}
   .x:hover{background:#F8FAFC}
   .grid{display:grid;gap:14px}
   .card{background:#fff;border:1px solid #E4E9F0;border-radius:16px;padding:20px 22px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06)}
   .ttl{font-size:14px;letter-spacing:0;text-transform:none;color:#6B7685;margin:0 0 12px;font-weight:600}
   .hero .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
-  .big{font-size:54px;line-height:1;font-weight:800;letter-spacing:-.02em}
+  .big{font-size:46px;line-height:1;font-weight:800;letter-spacing:-.02em}
   .of{font-size:19px;color:#6B7685;font-weight:700}
   .verdict{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;padding:6px 13px;border-radius:30px}
   .v-off{background:#FEE7E0;color:#E2451E}.v-on{background:#DCFCE7;color:#16A34A}
@@ -219,47 +222,71 @@
   .shutdate{font-size:28px;font-weight:800;letter-spacing:-.02em;color:#1A2230;line-height:1.05}
   .shutyear{font-size:14px;font-weight:700;color:#6B7685;margin-top:2px}
   .updated{font-size:12px;color:#94A3B8;margin-top:14px}
-  @media(max-width:780px){.three,.two,.herorow{grid-template-columns:1fr}.big{font-size:40px}.btext{font-size:16px}}`;
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .scope{font-size:20px;font-weight:700;color:#1A2230}
+  .scope span{font-weight:500;color:#6B7685;font-size:14px}
+  .colhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .subline{font-size:15px;color:#6B7685;margin-top:4px}
+  .subline b{color:#1A2230;font-weight:700}
+  .ygood{font-weight:700;font-size:13px;margin-top:0}
+  .ygood.on{color:#16A34A}.ygood.off{color:#E2451E}
+  .stamp,.yfact{font-size:13px;color:#6B7685;margin-top:18px;padding-top:14px;border-top:1px solid #E4E9F0}
+  .stamp b,.yfact b{color:#1A2230;font-weight:700}
+  .take{background:#EAF1FB;border:1px solid #CDDDF6;border-radius:16px;padding:18px 22px;margin-top:14px}
+  .take .t{font-size:13px;font-weight:700;color:#2563EB;margin:0 0 6px}
+  .take p{margin:0;font-size:16px;line-height:1.5;color:#1A2230}
+  .take b{font-weight:800}
+  .disclaimer{font-size:11.5px;color:#aeb6c2;text-align:center;line-height:1.6;margin:22px auto 0;max-width:760px}
+  @media(max-width:780px){.three,.two,.herorow,.cols{grid-template-columns:1fr}.big{font-size:40px}.btext{font-size:16px}}`;
 
   function render(root, B, A, C) {
     if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+    // ---- THIS MONTH ----
     const used = B.cycleUsed, cap = B.cycleBudget || (B.dailyTarget * B.daysInCycle), left = cap - used;
     const pctUsed = cap ? used / cap * 100 : 0;
     const pctTime = B.daysInCycle ? B.daysIn / B.daysInCycle * 100 : 0;
     const daysLeft = Math.max(0, B.daysInCycle - B.daysIn);
     const pace = B.daysIn ? used / B.daysIn : 0;
     const proj = pace * B.daysInCycle, projPct = cap ? proj / cap * 100 : 0;
-    const offTrack = projPct > 105;
-    const fillCol = offTrack ? 'linear-gradient(90deg,#FB923C,#EF4444)' : 'linear-gradient(90deg,#3B82F6,#2563EB)';
+    const monthOff = used > cap || projPct > 105;
     const monthName = B.cycleStart ? B.cycleStart.toLocaleDateString('en-US', { month: 'long' }) : 'this month';
+    const monthFill = monthOff ? 'linear-gradient(90deg,#FB923C,#EF4444)' : 'linear-gradient(90deg,#3B82F6,#2563EB)';
 
-    // ---- Year-end outlook + action steps (irrigation-dominant meter: the watering season drives the year) ----
+    // ---- THIS YEAR (irrigation-dominant meter: the watering season drives the year) ----
     const aBudget = A.annualBudget, aUsed = A.annualUsed;
     const haveAnnual = !!(aBudget && aUsed != null);
-    const aPct = haveAnnual ? aUsed / aBudget * 100 : null;
+    const aPct = haveAnnual ? aUsed / aBudget * 100 : 0;
     const now = new Date();
     const seasonEnd = new Date(now.getFullYear(), SHUTOFF.month, SHUTOFF.day);   // North Ogden secondary water shuts off ~Oct 15
     const daysToSeasonEnd = Math.max(0, Math.round((seasonEnd - now) / 864e5));
     const updatedStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     const shutMonthDay = seasonEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const shutYear = seasonEnd.getFullYear();
-    const canOutlook = haveAnnual && daysToSeasonEnd > 0 && pace > 0;
-    let yearClass = '', yearLead = '', yearMsg = '', cutPct = 0, allowedDailyYear = 0;
-    if (canOutlook) {
-      const diff = aBudget - (aUsed + pace * daysToSeasonEnd);     // + = leftover, - = over
-      allowedDailyYear = Math.max(0, (aBudget - aUsed) / daysToSeasonEnd);
-      cutPct = pace > allowedDailyYear ? Math.round((pace - allowedDailyYear) / pace * 100) : 0;
-      if (diff >= 0) {
-        yearClass = 'ok'; yearLead = 'Good news.';
-        yearMsg = `If you keep watering like you are now, you'll finish the season with about <b>${f(diff)} gallons to spare</b> before the water shuts off in October.`;
-      } else {
-        yearClass = 'bad'; yearLead = 'Heads up.';
-        yearMsg = `If you keep watering like you are now, you'll go <b>about ${f(-diff)} gallons over</b> your yearly limit by the time the water shuts off in mid-October.`;
-      }
+    const canYear = haveAnnual && daysToSeasonEnd > 0 && pace > 0;
+    let yearOff = false, yearlySafe = 0, toSpare = 0, overYearBy = 0, cutBack = 0;
+    if (canYear) {
+      yearlySafe = Math.max(0, (aBudget - aUsed) / daysToSeasonEnd);   // max daily pace that still stays under the yearly cap
+      const diff = aBudget - (aUsed + pace * daysToSeasonEnd);          // + = leftover, - = over
+      yearOff = diff < 0;
+      toSpare = Math.max(0, diff);
+      overYearBy = Math.max(0, -diff);
+      cutBack = Math.max(0, pace - yearlySafe);
+    }
+
+    // ---- THE BOTTOM LINE: copy for each of the four month/year combinations ----
+    let takeMsg = '';
+    if (canYear) {
+      if (monthOff && !yearOff)
+        takeMsg = `You went <b>over budget for ${monthName}</b>, but you've used little enough this year that you're <b>still on track for the whole season</b>. To stay under your yearly limit, you can use up to about <b>${f(yearlySafe)} gallons a day</b> through the shut-off. you're averaging about <b>${f(pace)}</b>, so you've actually got a little room. No need to cut back to stay on track.`;
+      else if (monthOff && yearOff)
+        takeMsg = `You're <b>over budget for ${monthName}</b>, and at this pace you're also on track to <b>go over for the whole year</b>. To get back under your yearly limit, aim for about <b>${f(yearlySafe)} gallons a day</b>. you're averaging about <b>${f(pace)}</b>, so dial your sprinklers back by about <b>${f(cutBack)} gallons a day</b>.`;
+      else if (!monthOff && !yearOff)
+        takeMsg = `You're <b>on track for ${monthName}</b> and <b>for the whole season</b>. you're averaging about <b>${f(pace)} gallons a day</b>, under your yearly pace of about <b>${f(yearlySafe)} a day</b>. Keep doing what you're doing.`;
+      else
+        takeMsg = `You're <b>within budget for ${monthName}</b>, but at this pace you're on track to <b>go over for the year</b>. Aim for about <b>${f(yearlySafe)} gallons a day</b> to stay under. you're averaging about <b>${f(pace)}</b>, so trim about <b>${f(cutBack)} gallons a day</b>.`;
     }
 
     // daily bars
-    let barsHtml = '<div class="tline" id="tl"><span>daily limit</span></div>';
+    let barsHtml = '<div class="tline" id="tl"><span>daily budget</span></div>';
     let maxv = B.dailyTarget || 1;
     if (C && C.daily.length) { C.daily.forEach(d => { if (d.total > maxv) maxv = d.total; }); }
     if (C && C.daily.length) {
@@ -286,61 +313,54 @@
           <svg class="drop" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2s7 7.3 7 12.3a7 7 0 1 1-14 0C5 9.5 12 2.2 12 2.2z"/></svg>
           <div><h1 class="serif">Your sprinkler water usage</h1><div class="sub muted">Straight from your meter. Updated every time you open this.</div></div>
         </div>
-        <div><button class="x" id="refresh">Refresh</button> <button class="x" id="close">Close &times;</button></div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <button class="x" id="refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Refresh</button>
+          <button class="close" id="close" aria-label="Close">&times;</button>
+        </div>
       </header>
 
-      <div class="herorow">
-        <div class="card hero">
-          <div class="head"><p class="ttl" style="margin:0">This is how much water you've used this month</p>
-            <span class="verdict ${offTrack ? 'v-off' : 'v-on'}">${offTrack ? '&#9650; Off track' : '&#10003; On track'}</span></div>
-          <div class="mt"><span class="big mono">${f(used)}</span> <span class="of">gallons</span></div>
-          <div class="muted" style="font-size:15px;margin-top:3px">out of your <b style="color:#1A2230">${f(cap)} gallon</b> limit for ${monthName}</div>
-          <div class="bar"><div class="fill" style="width:${Math.min(100, pctUsed)}%;background:${fillCol}"></div>
+      <div class="cols">
+        <div class="card">
+          <div class="colhead"><div class="scope">This month <span>&middot; ${monthName}</span></div>
+            <span class="verdict ${monthOff ? 'v-off' : 'v-on'}">${monthOff ? '&#9650; Off track' : '&#10003; On track'}</span></div>
+          <div><span class="big mono">${f(used)}</span> <span class="of">gallons</span></div>
+          <div class="subline">out of your <b>${f(cap)} gallon</b> limit for ${monthName}</div>
+          <div class="bar"><div class="fill" style="width:${Math.min(100, pctUsed)}%;background:${monthFill}"></div>
             <div class="mark" style="left:${Math.min(96, pctTime)}%"><span>today</span></div></div>
-          <div class="barfoot"><span><b style="color:${offTrack ? '#E2451E' : '#16A34A'};font-size:14px">${Math.round(pctUsed)}% used</b></span>
-            <span class="muted"><b style="color:#1A2230">${f(left)} gallons</b> left, ${daysLeft} days to go</span></div>
-          <div class="updated">Updated ${updatedStr}</div>
+          <div class="barfoot"><span><b style="color:${monthOff ? '#E2451E' : '#16A34A'};font-size:14px">${Math.round(pctUsed)}% used</b></span>
+            <span class="muted">${used > cap
+              ? `<b style="color:#E2451E">${f(used - cap)} gallons over</b>, ${daysLeft} days left`
+              : `<b style="color:#1A2230">${f(left)} gallons</b> left, ${daysLeft} days to go`}</span></div>
+          <div class="stamp">Updated ${updatedStr}</div>
         </div>
-        <div class="card shut">
-          <p class="ttl">Water shuts off</p>
-          <div class="leakmid"><div><div class="shutdate">${shutMonthDay}</div><div class="shutyear">${shutYear}</div></div></div>
-          <div class="updated">${daysToSeasonEnd > 0 ? 'In about ' + daysToSeasonEnd + ' days' : 'Off for the season'}</div>
+
+        <div class="card">
+          <div class="colhead"><div class="scope">This year</div>
+            <span class="verdict ${yearOff ? 'v-off' : 'v-on'}">${yearOff ? '&#9650; Off track' : '&#10003; On track'}</span></div>
+          ${!haveAnnual ? '<div class="muted" style="font-size:14px">Yearly figure unavailable right now.</div>' : `
+          <div><span class="big mono">${Math.round(aPct)}%</span> <span class="of">used</span></div>
+          <div class="subline"><b>${f(aUsed)}</b> of <b>${f(aBudget)} gallons</b></div>
+          <div class="bar"><div class="fill" style="width:${Math.min(100, aPct)}%;background:linear-gradient(90deg,#3B82F6,#2563EB)"></div></div>
+          ${canYear ? `<div class="ygood ${yearOff ? 'off' : 'on'}">${yearOff
+            ? `On pace to go about <b>${f(overYearBy)} gallons over</b>`
+            : `On pace to finish with about <b>${f(toSpare)} gallons to spare</b>`}</div>` : ''}
+          <div class="yfact">Water shuts off <b>${shutMonthDay}</b>${daysToSeasonEnd > 0 ? ` &middot; in about ${daysToSeasonEnd} days` : ''}</div>`}
         </div>
       </div>
 
-      ${canOutlook ? `<div class="banner ${yearClass} mt">
-        <div class="bicon">${yearClass === 'bad' ? '&#9888;&#65039;' : '&#127881;'}</div>
-        <div><div class="blead">${yearLead}</div><div class="btext">${yearMsg}</div></div></div>` : ''}
+      ${takeMsg ? `<div class="take"><p class="t">The bottom line</p><p>${takeMsg}</p></div>` : ''}
 
-      ${canOutlook && cutPct > 0 ? `<div class="card action mt">
-        <p class="ttl">What to do about it</p>
-        <div class="actionbig">Water about ${cutPct}% less</div>
-        <p class="note">Right now you're using about <b>${f(pace)} gallons a day</b>. To stay under your limit for the year, aim for about <b>${f(allowedDailyYear)} gallons a day</b> or less.<br><br>
-        The two easiest ways to get there: run each sprinkler zone about <b>${cutPct}% shorter</b>, or <b>water one fewer day each week</b>.</p></div>`
-      : (canOutlook ? `<div class="card good-card mt">
-        <p class="ttl">What to do about it</p>
-        <div class="actionbig" style="color:#16A34A">Nothing, you're on track.</div>
-        <p class="note">You're using about <b>${f(pace)} gallons a day</b>, which keeps you under your yearly limit. Keep doing what you're doing.</p></div>` : '')}
-
-      <div class="grid two mt">
-        <div class="card"><p class="ttl">Your water budget for the whole year</p>
-          ${aPct == null ? '<div class="muted" style="font-size:13.5px">Yearly figure unavailable right now.</div>' : `
-          <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="nm mono">${Math.round(aPct)}% used</span>
-            <span class="muted" style="font-size:13.5px">${f(aUsed)} of ${f(aBudget)} gal</span></div>
-          <div class="abar"><div class="f" style="width:${Math.min(100, aPct)}%"></div></div>
-          <div class="muted" style="font-size:13.5px"><b style="color:#1A2230">${f(aBudget - aUsed)} gallons</b> left for the rest of the year</div>`}</div>
-        <div class="card leak ${leakBad ? 'bad' : 'ok'}"><p class="ttl">Leak check</p>
-          <div class="leakmid"><span class="st">${leakBad ? '&#9888;&#65039; Possible leak' : '&#10003; No leaks found'}</span></div>
-          <p class="leaksub muted">${leakBad ? f(C.leakGal) + ' gallons looked like a leak this month. Worth a closer look.' : 'Good news, nothing looks like a leak. Your high usage is the sprinklers, not a hidden problem.'}</p></div>
-      </div>
-
-      <div class="card mt"><p class="ttl">How much water you use each day <span style="color:#94A3B8;font-weight:500">(your daily limit is ${f(B.dailyTarget)} gallons)</span></p>
+      <div class="card mt"><p class="ttl">How much water you use each day <span style="color:#94A3B8;font-weight:500">(your ${monthName} daily budget is ${f(B.dailyTarget)} gallons)</span></p>
         <div class="bars" id="bars">${barsHtml}</div></div>
 
       <div class="card mt"><p class="ttl">When your sprinklers ran${C && C.maxLabel ? ', ' + C.maxLabel : ''}</p>
         <div>${runsHtml}</div></div>
 
-      <div class="foot">This is the same information your water utility already has, just shown more clearly.</div>
+      <div class="card leak ${leakBad ? 'bad' : 'ok'} mt"><p class="ttl">Leak check</p>
+        <div class="leakmid"><span class="st">${leakBad ? '&#9888;&#65039; Possible leak' : '&#10003; No leaks found'}</span></div>
+        <p class="leaksub muted">${leakBad ? f(C.leakGal) + ' gallons looked like a leak this month. Worth a closer look.' : 'Good news, nothing looks like a leak. Your high usage is the sprinklers, not a hidden problem.'}</p></div>
+
+      <div class="disclaimer">Unofficial helper, not affiliated with or endorsed by your water utility or Metron/Waterscope. The numbers are calculated from your own meter data; forecasts assume your current pace continues. your utility's bill is the official record. Use at your own risk.</div>
     </div></div></div>`;
 
     // target line position
